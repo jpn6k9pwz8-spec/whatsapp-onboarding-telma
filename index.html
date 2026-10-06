@@ -4,53 +4,56 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Integração WhatsApp Business - Consultório Dra. Telma</title>
+  <title>Conectar WhatsApp Business - Consultório Telma</title>
 
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f7f9;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f6f7;
       margin: 0;
       padding: 40px 20px;
       text-align: center;
+      color: #1c1e21;
     }
 
     .container {
       max-width: 600px;
       margin: 60px auto;
-      background: white;
+      background: #ffffff;
       padding: 40px;
       border-radius: 12px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
     }
 
     h2 {
-      margin-bottom: 20px;
+      margin-top: 0;
     }
 
     p {
       line-height: 1.6;
-      color: #444;
     }
 
     button {
-      margin-top: 20px;
-      background: #1877f2;
-      color: white;
+      background-color: #1877f2;
       border: 0;
-      border-radius: 7px;
-      padding: 14px 26px;
-      font-size: 16px;
+      border-radius: 6px;
+      color: #ffffff;
       cursor: pointer;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      font-weight: bold;
+      min-height: 44px;
+      padding: 0 24px;
+      margin-top: 20px;
     }
 
     button:hover {
-      opacity: 0.9;
+      background-color: #166fe5;
     }
 
     #status {
       margin-top: 25px;
-      font-weight: bold;
+      font-size: 15px;
     }
   </style>
 </head>
@@ -66,11 +69,6 @@
       à Plataforma do WhatsApp Business.
     </p>
 
-    <p>
-      Esta integração permite utilizar o WhatsApp Business
-      juntamente com os recursos da API.
-    </p>
-
     <button onclick="launchWhatsAppSignup()">
       Conectar WhatsApp Business
     </button>
@@ -80,16 +78,29 @@
   </div>
 
   <script>
+
+    /*
+     * Inicialização do SDK do Facebook
+     */
     window.fbAsyncInit = function () {
+
       FB.init({
         appId: '1665306038546848',
         autoLogAppEvents: true,
         xfbml: true,
         version: 'v26.0'
       });
+
+      console.log('Facebook SDK inicializado.');
+
     };
 
+
+    /*
+     * Carrega o SDK JavaScript da Meta
+     */
     (function (d, s, id) {
+
       var js;
       var fjs = d.getElementsByTagName(s)[0];
 
@@ -106,6 +117,9 @@
     }(document, 'script', 'facebook-jssdk'));
 
 
+    /*
+     * Captura os eventos enviados pelo Embedded Signup
+     */
     window.addEventListener('message', function (event) {
 
       if (
@@ -125,30 +139,64 @@
         if (data && data.type === 'WA_EMBEDDED_SIGNUP') {
 
           console.log(
-            'WhatsApp Embedded Signup:',
+            'Evento WhatsApp Embedded Signup:',
             data
           );
 
+          /*
+           * Apenas mostramos o status.
+           * Ainda não enviamos dados para o backend.
+           */
+          if (data.event === 'FINISH') {
+
+            document.getElementById('status').innerText =
+              'Integração concluída no WhatsApp.';
+
+          } else if (data.event === 'CANCEL') {
+
+            document.getElementById('status').innerText =
+              'Integração cancelada.';
+
+          }
+
         }
 
-      } catch (e) {
+      } catch (error) {
 
-        console.log('Evento ignorado.');
+        console.log(
+          'Evento recebido, mas não processado.',
+          error
+        );
 
       }
 
     });
 
 
+    /*
+     * Callback do Facebook Login
+     */
     function fbLoginCallback(response) {
 
-      if (response.authResponse) {
+      console.log(
+        'Resposta do Facebook Login:',
+        response
+      );
 
-        const code = response.authResponse.code;
+      if (
+        response &&
+        response.authResponse &&
+        response.authResponse.code
+      ) {
 
-        console.log(
-          'Código de autorização recebido.'
-        );
+        /*
+         * IMPORTANTE:
+         *
+         * O código de autorização deverá posteriormente
+         * ser enviado ao backend.
+         *
+         * Não fazemos a troca por token no navegador.
+         */
 
         document.getElementById('status').innerText =
           'Autorização concluída. Não feche esta página.';
@@ -163,33 +211,51 @@
     }
 
 
+    /*
+     * Inicia o Embedded Signup específico
+     * para usuários do WhatsApp Business App.
+     */
     function launchWhatsAppSignup() {
 
       document.getElementById('status').innerText =
-        'Abrindo integração do WhatsApp...';
+        'Abrindo integração com o WhatsApp Business...';
 
       FB.login(
         fbLoginCallback,
         {
-          config_id: '1427514582858915',
+
+          /*
+           * NOVA configuração criada
+           * exclusivamente para coexistência.
+           */
+          config_id: '28247683804903612',
 
           response_type: 'code',
 
           override_default_response_type: true,
 
+          /*
+           * Configuração de onboarding do
+           * WhatsApp Business App.
+           *
+           * NÃO utilizar app_only_install aqui.
+           */
           extras: {
-            version: 'v4',
-            featureType: 'whatsapp_business_app_onboarding',
-            features: [
-              {
-                name: 'app_only_install'
-              }
-            ]
+
+            setup: {},
+
+            featureType:
+              'whatsapp_business_app_onboarding',
+
+            sessionInfoVersion: '3'
+
           }
+
         }
       );
 
     }
+
   </script>
 
 </body>
