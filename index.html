@@ -21,7 +21,7 @@
       background: white;
       padding: 40px;
       border-radius: 12px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
     }
 
     h2 {
@@ -144,6 +144,12 @@
 
       if (response.authResponse) {
 
+        const code = response.authResponse.code;
+
+        console.log(
+          'Código de autorização recebido.'
+        );
+
         document.getElementById('status').innerText =
           'Autorização concluída. Não feche esta página.';
 
@@ -166,13 +172,19 @@
         fbLoginCallback,
         {
           config_id: '1427514582858915',
+
           response_type: 'code',
+
           override_default_response_type: true,
 
           extras: {
-            setup: {},
+            version: 'v4',
             featureType: 'whatsapp_business_app_onboarding',
-            sessionInfoVersion: '3'
+            features: [
+              {
+                name: 'app_only_install'
+              }
+            ]
           }
         }
       );
